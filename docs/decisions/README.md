@@ -32,3 +32,4 @@ What becomes easier? What becomes harder? What are the trade-offs?
 | ADR-002 | [Immutable, versioned commission snapshots](./ADR-002-immutable-commission-snapshots.md)        | Accepted |
 | ADR-003 | [Monetary values in integer minor units](./ADR-003-monetary-minor-units.md)                     | Accepted |
 | ADR-004 | [Transaction reference code format `TRX-YYYY-XXXXXX`](./ADR-004-reference-code-format.md)       | Accepted |
+| ADR-005 | [OpenAPI / Swagger for the HTTP surface](./ADR-005-openapi-swagger.md)                           | Accepted |

@@ -94,6 +94,17 @@ export class AgentsService {
     return doc;
   }
 
+  /**
+   * Look up an agent by email (case-insensitive). Returns `null` when no
+   * agent exists — used by the demo seed script to decide between create
+   * and re-use without relying on exception-driven control flow.
+   */
+  async findByEmailOrNull(email: string): Promise<AgentDocument | null> {
+    return this.agentModel
+      .findOne({ email: email.toLowerCase().trim() })
+      .exec();
+  }
+
   async update(id: string, dto: UpdateAgentDto): Promise<AgentDocument> {
     this.assertValidObjectId(id);
     const update: Record<string, unknown> = {};

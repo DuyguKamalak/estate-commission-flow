@@ -1,3 +1,4 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
 import { TransactionStage } from '../../../common/enums/transaction-stage.enum';
 
@@ -9,14 +10,30 @@ import { TransactionStage } from '../../../common/enums/transaction-stage.enum';
  * persists the commission breakdown atomically (see TransactionsService).
  */
 export class AdvanceStageDto {
+  @ApiProperty({
+    enum: TransactionStage,
+    example: TransactionStage.EARNEST_MONEY,
+    description:
+      'Target stage — must be exactly one step ahead of the current stage.',
+  })
   @IsEnum(TransactionStage)
   toStage!: TransactionStage;
 
+  @ApiPropertyOptional({
+    description: 'Free-text reason recorded on the stage history row.',
+    example: 'Buyer deposited earnest money',
+    maxLength: 500,
+  })
   @IsOptional()
   @IsString()
   @MaxLength(500)
   reason?: string;
 
+  @ApiPropertyOptional({
+    description: 'Operator / system that initiated the transition.',
+    example: 'A. Operator',
+    maxLength: 100,
+  })
   @IsOptional()
   @IsString()
   @MaxLength(100)

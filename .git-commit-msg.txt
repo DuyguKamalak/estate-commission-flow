@@ -1,0 +1,20 @@
+feat(sprint-8): OpenAPI docs, readiness probe, demo seed + final polish
+
+- Swagger/OpenAPI 3 mounted at /api/docs with /api/docs-json spec;
+  every controller tagged and every DTO annotated with @ApiProperty.
+- Shared ApiErrorDto documents the canonical error envelope (statusCode,
+  errorCode enum, message, timestamp, path) so integrators see the exact
+  failure shape per endpoint.
+- HealthController: /api/health kept for liveness, new /api/health/ready
+  pings MongoDB (readyState + admin { ping: 1 }) and returns 503 when
+  the DB is unreachable - suitable as a load-balancer health check.
+- Demo seed script (npm run seed): creates 4 agents and 5 transactions
+  across every lifecycle stage (incl. two completed, GBP + EUR) through
+  the real services to guarantee invariants. SEED_RESET=true wipes
+  collections first. Adds AgentsService.findByEmailOrNull helper.
+- ADR-005 documents the OpenAPI decision; root/backend/frontend READMEs
+  rewritten with quick start, seed usage, endpoint list, env tables,
+  Swagger URL, deployment notes, and ADR index.
+- npm test: 98/98 green; npm run build clean; live smoke verifies
+  health, readiness (~100ms Mongo round-trip), Swagger UI, dashboard,
+  commissions report JSON + CSV export.

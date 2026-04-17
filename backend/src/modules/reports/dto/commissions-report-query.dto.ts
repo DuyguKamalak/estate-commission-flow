@@ -1,3 +1,4 @@
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
   IsISO8601,
@@ -22,18 +23,36 @@ import {
  * defensively because the DB stores uppercased values.
  */
 export class CommissionsReportQueryDto {
+  @ApiPropertyOptional({
+    description: 'Inclusive lower bound on `calculatedAt` (ISO 8601).',
+    example: '2026-04-01T00:00:00.000Z',
+  })
   @IsOptional()
   @IsISO8601()
   from?: string;
 
+  @ApiPropertyOptional({
+    description: 'Inclusive upper bound on `calculatedAt` (ISO 8601).',
+    example: '2026-04-30T23:59:59.999Z',
+  })
   @IsOptional()
   @IsISO8601()
   to?: string;
 
+  @ApiPropertyOptional({
+    description: 'Filter to breakdowns where this agent received a share.',
+    example: '69e19d0e193d67beb17fa541',
+  })
   @IsOptional()
   @IsMongoId()
   agentId?: string;
 
+  @ApiPropertyOptional({
+    description: 'ISO 4217 three-letter code, uppercased server-side.',
+    example: 'GBP',
+    minLength: 3,
+    maxLength: 3,
+  })
   @IsOptional()
   @IsString()
   @Length(3, 3)
