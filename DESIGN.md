@@ -326,9 +326,8 @@ the seeded demo data:
 
 ## 13. Future Improvements
 
-- OpenAPI / Swagger documentation.
 - Role-based access control.
-- CSV / PDF export of financial breakdowns.
+- PDF export of financial breakdowns (CSV export already live).
 - Real-time stage updates via WebSockets.
 - Commission rule versioning with configurable policies.
 - FX-aware cross-currency reports.
