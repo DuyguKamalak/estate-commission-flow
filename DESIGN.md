@@ -275,7 +275,56 @@ input to the server limit rather than relying on server errors to drive UX.
 
 ---
 
-## 12. Future Improvements
+## 12. What's Live Today
+
+The following end-to-end slices are implemented, deployed, and exercised by
+the seeded demo data:
+
+**Domain & persistence**
+- Four-stage lifecycle (`agreement → earnest_money → title_deed → completed`)
+  with forward-only enforcement at the service layer.
+- Immutable `CommissionBreakdown` snapshots written atomically on
+  `title_deed → completed`, persisted with `ruleVersion` for provenance.
+- Full stage-history audit trail, rendered as a timeline on the detail page.
+- Monetary values stored as integer minor units; odd-penny routing rule
+  implemented and documented in UI copy.
+
+**Commission rules**
+- Scenario A (same agent): entire pool credited to the single agent, UI
+  collapses the two roles into a "Listing + selling" row.
+- Scenario B (different agents): 25/25 split with odd-penny to the listing
+  agent. Both scenarios covered by unit tests in the calculator.
+
+**API**
+- Agents, Transactions, Reports, Health endpoints (see §7).
+- Global validation pipe with typed error responses.
+- Swagger/OpenAPI documentation at `/api/docs`.
+- Pagination contract enforced (`pageSize` capped at 100, frontend clamps
+  to match).
+
+**Frontend**
+- Dashboard with KPIs, stage distribution, recent transactions.
+- Transaction list with stage / type / agent / search filters and server-side
+  pagination.
+- Transaction detail with stage timeline, agent summary, commission
+  breakdown card, and in-context "advance stage" flow.
+- Agent directory with create + soft-deactivate.
+- Reports page with per-currency aggregation (GBP + EUR supported in the
+  seed), agent earnings ranking, and completed-deals table.
+- Shared UI primitives (`DataStateBoundary`, `StageBadge`, `StageTimeline`,
+  `MoneyCell`, `EmptyState`, `ModalShell`, `ToastStack`) keep every page
+  consistent in loading / error / empty states.
+
+**Operations**
+- Deterministic demo seed script (`npm run seed`) that boots the Nest
+  application context and writes data through the real services — the
+  seeded shape is guaranteed identical to live API writes.
+- Cross-currency sample transaction so the reports page shows multi-bucket
+  aggregation on a fresh seed.
+
+---
+
+## 13. Future Improvements
 
 - OpenAPI / Swagger documentation.
 - Role-based access control.
