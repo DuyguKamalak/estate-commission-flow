@@ -47,7 +47,7 @@ const environmentName = process.env.NODE_ENV ?? 'development';
           <dt class="text-xs uppercase tracking-wide text-[color:var(--color-on-surface-variant)]">
             Sprint
           </dt>
-          <dd class="mt-1 font-mono text-[color:var(--color-primary)]">Sprint 5 — Frontend foundation</dd>
+          <dd class="mt-1 font-mono text-[color:var(--color-primary)]">Sprint 9 — Production polish</dd>
         </div>
       </dl>
     </section>

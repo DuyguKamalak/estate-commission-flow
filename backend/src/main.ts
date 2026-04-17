@@ -47,7 +47,7 @@ async function bootstrap(): Promise<void> {
    * keep it documented under its own "Health" tag so uptime checks
    * can still find it in the spec.
    */
-  const swaggerConfig = new DocumentBuilder()
+  const swaggerBuilder = new DocumentBuilder()
     .setTitle('Estate Commission Flow API')
     .setDescription(
       [
@@ -67,14 +67,36 @@ async function bootstrap(): Promise<void> {
       'https://iceberg.digital',
       'engineering@iceberg.digital',
     )
-    .setLicense('UNLICENSED', 'https://iceberg.digital')
-    .addServer(`http://localhost:${port}/${apiPrefix}`, 'Local dev')
+    .setLicense('UNLICENSED', 'https://iceberg.digital');
+
+  /*
+   * Swagger server list.
+   *
+   * - In production, we prefer `SWAGGER_PUBLIC_URL` (explicit) and fall
+   *   back to Render's auto-injected `RENDER_EXTERNAL_URL` so the
+   *   "Try it out" button targets the actual deployment without
+   *   hardcoding the URL into the repo.
+   * - Local dev is always listed so reviewers running the stack on
+   *   their machine get a working server out of the box.
+   */
+  const publicBaseUrl =
+    process.env.SWAGGER_PUBLIC_URL ?? process.env.RENDER_EXTERNAL_URL;
+  if (publicBaseUrl) {
+    swaggerBuilder.addServer(
+      `${publicBaseUrl.replace(/\/+$/, '')}/${apiPrefix}`,
+      'Production',
+    );
+  }
+  swaggerBuilder.addServer(`http://localhost:${port}/${apiPrefix}`, 'Local dev');
+
+  swaggerBuilder
     .addTag('Health', 'Liveness & readiness probes.')
     .addTag('Agents', 'Agent directory (create, list, deactivate).')
     .addTag('Transactions', 'Transaction lifecycle & stage history.')
     .addTag('Commissions', 'Commission breakdowns & aggregates (read-only).')
-    .addTag('Reports', 'Dashboard snapshot & commissions report + CSV export.')
-    .build();
+    .addTag('Reports', 'Dashboard snapshot & commissions report + CSV export.');
+
+  const swaggerConfig = swaggerBuilder.build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup(`${apiPrefix}/docs`, app, document, {
     customSiteTitle: 'Estate Commission Flow — API Docs',
