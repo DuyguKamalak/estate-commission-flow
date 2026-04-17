@@ -1,0 +1,38 @@
+{
+  "name": "estate-commission-flow-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Nuxt 3 UI for Estate Commission Flow.",
+  "author": "Iceberg Digital UK",
+  "license": "UNLICENSED",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck",
+    "lint": "eslint . --fix"
+  },
+  "dependencies": {
+    "@pinia/nuxt": "^0.9.0",
+    "nuxt": "^3.15.0",
+    "pinia": "^2.3.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@nuxt/eslint": "^0.7.4",
+    "@nuxtjs/google-fonts": "^3.2.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/node": "^22.10.0",
+    "eslint": "^9.17.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.2",
+    "vue-tsc": "^2.1.10"
+  }
+}

@@ -1,0 +1,92 @@
+# ---------------------------------------------------------------------------
+# Estate Commission Flow — root .gitignore
+# ---------------------------------------------------------------------------
+
+# --- OS & editor ------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# --- Logs & temp ------------------------------------------------------------
+*.log
+*.pid
+*.seed
+*.pid.lock
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# --- Node / package managers ------------------------------------------------
+node_modules/
+jspm_packages/
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# --- Build outputs ----------------------------------------------------------
+dist/
+build/
+out/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# --- NestJS / TypeScript ----------------------------------------------------
+backend/dist/
+backend/coverage/
+backend/*.tsbuildinfo
+
+# --- Nuxt 3 / Vite ----------------------------------------------------------
+frontend/.nuxt/
+frontend/.output/
+frontend/.nitro/
+frontend/.cache/
+frontend/.data/
+frontend/dist/
+frontend/.vite/
+
+# --- Environment variables (NEVER commit secrets) ---------------------------
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.staging
+!.env.example
+
+# --- Test & misc ------------------------------------------------------------
+.eslintcache
+.stylelintcache
+.turbo/
+.parcel-cache/
+
+# --- Deployment artifacts ---------------------------------------------------
+.vercel/
+.netlify/
+.render/
+
+# ---------------------------------------------------------------------------
+# Internal / private planning documents — NEVER commit
+# These live outside the repo, but guard against accidental copies.
+# ---------------------------------------------------------------------------
+plan.txt
+tasks.txt
+technical_case*.pdf
+*.internal.md
+*.private.md
+/private/
+/internal/
