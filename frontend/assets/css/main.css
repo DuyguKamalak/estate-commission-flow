@@ -239,3 +239,74 @@ h6 {
     box-shadow: 0 0 0 3px rgba(0, 81, 213, 0.12);
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Print styles.
+ *
+ * When the user hits "Print" on a transaction detail page we only want
+ * the commission breakdown on the paper — no sidebar, no header, no
+ * nav chrome, no hover states. The breakdown itself flattens to black
+ * ink on white paper with thin rules, so an operator can hand it to
+ * an agent or clip it to a ledger file.
+ * ------------------------------------------------------------------- */
+
+@media print {
+  @page {
+    margin: 18mm 16mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* Hide everything by default, then surgically bring back the
+   * breakdown card and its ancestors via `print-area`. */
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    inset: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+  }
+
+  /* Chrome / interaction-only elements. */
+  .no-print,
+  aside,
+  header,
+  nav,
+  button[type='button']:not(.allow-print),
+  .btn-primary,
+  .btn-tertiary {
+    display: none !important;
+  }
+
+  /* Flatten the design tokens to print-friendly ink. */
+  .print-area,
+  .print-area * {
+    color: #000000 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Thin rules instead of tonal surfaces for section boundaries. */
+  .print-area .divide-y > * + * {
+    border-top: 1px solid #d4d4d4 !important;
+  }
+
+  /* Keep numbers crisp; remove hover/animation artefacts. */
+  .print-area a {
+    text-decoration: none !important;
+  }
+}
+

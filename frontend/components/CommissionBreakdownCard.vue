@@ -26,6 +26,12 @@ function agentName(id: string): string {
   return a.fullName ?? `${a.firstName} ${a.lastName}`;
 }
 
+function onPrint() {
+  if (typeof window !== 'undefined') {
+    window.print();
+  }
+}
+
 const roleLabel: Record<string, string> = {
   [CommissionPartyRole.LISTING]: 'Listing agent',
   [CommissionPartyRole.SELLING]: 'Selling agent',
@@ -34,14 +40,25 @@ const roleLabel: Record<string, string> = {
 </script>
 
 <template>
-  <div class="ledger-card">
-    <div class="flex items-center justify-between">
+  <div class="ledger-card print-area">
+    <div class="flex items-center justify-between gap-3">
       <h3 class="font-display text-lg font-bold text-[color:var(--color-primary)]">
         Commission breakdown
       </h3>
-      <span class="text-xs text-[color:var(--color-on-surface-variant)] font-mono">
-        rule {{ breakdown.ruleVersion }}
-      </span>
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-[color:var(--color-on-surface-variant)] font-mono">
+          rule {{ breakdown.ruleVersion }}
+        </span>
+        <button
+          type="button"
+          class="btn-tertiary text-xs flex items-center gap-1.5 no-print"
+          aria-label="Print commission breakdown"
+          @click="onPrint"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="8" /></svg>
+          Print
+        </button>
+      </div>
     </div>
 
     <div class="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
