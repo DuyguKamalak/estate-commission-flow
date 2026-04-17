@@ -220,6 +220,14 @@ The application is deployed and publicly accessible:
 
 > Note: The backend is hosted on Render's free tier, so the first request may take a few seconds if the service is waking up.
 
+
+## 🔍 Quick API Check
+
+You can verify the backend is live via:
+
+- Health: https://estate-commission-flow.onrender.com/api/health
+- Dashboard snapshot: https://estate-commission-flow.onrender.com/api/reports/dashboard
+
 ## Documentation
 
 - [`DESIGN.md`](./DESIGN.md) — architecture, domain model, business rules, trade-offs.
