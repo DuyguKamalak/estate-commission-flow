@@ -3,11 +3,14 @@ import {
   TransactionStage,
   TRANSACTION_STAGE_LABEL,
   TRANSACTION_STAGE_ORDER,
+  type RecentTransactionSummary,
 } from '~/types/api';
 
 useHead({ title: 'Dashboard · Estate Commission Flow' });
 
 const dashboard = useDashboardStore();
+const transactions = useTransactionsStore();
+const toast = useToast();
 const { formatMinor } = useCurrency();
 
 /*
@@ -82,6 +85,64 @@ function formatAgencyEarnings(
   if (!rest.length) return head;
   return `${head} +${rest.length} more`;
 }
+
+/*
+ * Dashboard quick-advance flow.
+ *
+ * The brief asks for a dashboard that can both *visualise* and *trigger*
+ * stage transitions. The detail page owns the full form; here we offer
+ * a single-click shortcut straight from the recent-transactions list
+ * so a dispatcher can nudge a deal forward without a page hop.
+ */
+function nextStageOf(stage: TransactionStage): TransactionStage | null {
+  const idx = TRANSACTION_STAGE_ORDER.indexOf(stage);
+  if (idx < 0 || idx >= TRANSACTION_STAGE_ORDER.length - 1) return null;
+  return TRANSACTION_STAGE_ORDER[idx + 1];
+}
+
+const advanceTarget = ref<RecentTransactionSummary | null>(null);
+const advanceReason = ref('');
+const advanceTriggeredBy = ref('');
+const advancing = ref(false);
+
+const advanceNextStage = computed<TransactionStage | null>(() =>
+  advanceTarget.value ? nextStageOf(advanceTarget.value.stage) : null,
+);
+
+function openAdvance(tx: RecentTransactionSummary) {
+  advanceReason.value = '';
+  advanceTriggeredBy.value = '';
+  advanceTarget.value = tx;
+}
+
+function closeAdvance() {
+  if (advancing.value) return;
+  advanceTarget.value = null;
+}
+
+async function confirmAdvance() {
+  if (!advanceTarget.value || !advanceNextStage.value) return;
+  const target = advanceTarget.value;
+  const toStage = advanceNextStage.value;
+  advancing.value = true;
+  try {
+    await transactions.advanceStage(target.id, {
+      toStage,
+      reason: advanceReason.value.trim() || undefined,
+      triggeredBy: advanceTriggeredBy.value.trim() || undefined,
+    });
+    toast.success(
+      'Stage advanced',
+      `${target.propertyTitle} is now in ${TRANSACTION_STAGE_LABEL[toStage]}.`,
+    );
+    advanceTarget.value = null;
+    await dashboard.fetchSnapshot();
+  } catch (err) {
+    toast.error('Could not advance stage', (err as Error).message);
+  } finally {
+    advancing.value = false;
+  }
+}
 </script>
 
 <template>
@@ -151,13 +212,15 @@ function formatAgencyEarnings(
             />
           </div>
           <div v-else class="mt-5 divide-y divide-[color:var(--color-surface-container)]">
-            <NuxtLink
+            <div
               v-for="tx in recent"
               :key="tx.id"
-              :to="`/transactions/${tx.id}`"
-              class="flex items-center justify-between py-3 -mx-2 px-2 rounded-[var(--radius-md)] hover:bg-[color:var(--color-surface-container-low)] transition-colors"
+              class="group flex items-center justify-between gap-3 py-3 -mx-2 px-2 rounded-[var(--radius-md)] hover:bg-[color:var(--color-surface-container-low)] transition-colors"
             >
-              <div class="min-w-0">
+              <NuxtLink
+                :to="`/transactions/${tx.id}`"
+                class="min-w-0 flex-1"
+              >
                 <div
                   class="text-sm font-semibold text-[color:var(--color-primary)] truncate"
                 >
@@ -168,16 +231,25 @@ function formatAgencyEarnings(
                 >
                   {{ tx.referenceCode }}
                 </div>
-              </div>
-              <div class="flex items-center gap-4 shrink-0">
+              </NuxtLink>
+              <div class="flex items-center gap-3 sm:gap-4 shrink-0">
                 <MoneyCell
                   :value="tx.totalServiceFee"
                   :currency="tx.currency"
                   tabular
                 />
                 <StageBadge :stage="tx.stage" compact />
+                <button
+                  v-if="nextStageOf(tx.stage)"
+                  type="button"
+                  class="btn-tertiary text-xs whitespace-nowrap"
+                  :aria-label="`Advance ${tx.propertyTitle} to ${TRANSACTION_STAGE_LABEL[nextStageOf(tx.stage)!]}`"
+                  @click="openAdvance(tx)"
+                >
+                  Advance →
+                </button>
               </div>
-            </NuxtLink>
+            </div>
           </div>
         </div>
 
@@ -226,5 +298,75 @@ function formatAgencyEarnings(
         </div>
       </section>
     </DataStateBoundary>
+
+    <ModalShell
+      :open="advanceTarget !== null"
+      :title="`Advance to ${advanceNextStage ? TRANSACTION_STAGE_LABEL[advanceNextStage] : ''}`"
+      description="Stage changes are recorded in the audit trail. Completed triggers the commission breakdown snapshot."
+      @close="closeAdvance"
+    >
+      <form
+        v-if="advanceTarget"
+        class="flex flex-col gap-4"
+        @submit.prevent="confirmAdvance"
+      >
+        <div
+          class="rounded-[var(--radius-md)] bg-[color:var(--color-surface-container-low)] px-3 py-2 text-xs text-[color:var(--color-on-surface-variant)]"
+        >
+          <span class="font-semibold text-[color:var(--color-primary)]">
+            {{ advanceTarget.propertyTitle }}
+          </span>
+          · <span class="font-mono">{{ advanceTarget.referenceCode }}</span>
+        </div>
+
+        <FormField
+          label="Reason"
+          for="dashboard-advance-reason"
+          helper="Optional — appears in the stage history row."
+        >
+          <input
+            id="dashboard-advance-reason"
+            v-model="advanceReason"
+            type="text"
+            class="field-input"
+            maxlength="500"
+            placeholder="e.g. Buyer signed title deed at Land Registry"
+          >
+        </FormField>
+
+        <FormField
+          label="Triggered by"
+          for="dashboard-advance-triggered-by"
+          helper="Optional — name of the operator, or leave blank for system."
+        >
+          <input
+            id="dashboard-advance-triggered-by"
+            v-model="advanceTriggeredBy"
+            type="text"
+            class="field-input"
+            maxlength="120"
+            placeholder="e.g. A. Operator"
+          >
+        </FormField>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button
+            type="button"
+            class="btn-tertiary text-sm"
+            :disabled="advancing"
+            @click="closeAdvance"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="btn-primary text-sm"
+            :disabled="advancing"
+          >
+            {{ advancing ? 'Advancing…' : 'Confirm' }}
+          </button>
+        </div>
+      </form>
+    </ModalShell>
   </div>
 </template>
