@@ -32,9 +32,19 @@ export function useApiClient() {
     get: <T>(path: string, query?: Record<string, unknown>) =>
       request<T>(path, { method: 'GET', query: stripNil(query) }),
     post: <T>(path: string, body?: unknown) =>
-      request<T>(path, { method: 'POST', body }),
+      request<T>(path, {
+        method: 'POST',
+        body: body as Parameters<typeof $fetch>[1] extends { body?: infer B }
+          ? B
+          : never,
+      }),
     patch: <T>(path: string, body?: unknown) =>
-      request<T>(path, { method: 'PATCH', body }),
+      request<T>(path, {
+        method: 'PATCH',
+        body: body as Parameters<typeof $fetch>[1] extends { body?: infer B }
+          ? B
+          : never,
+      }),
     del: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
   };
 }
