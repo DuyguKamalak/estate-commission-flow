@@ -2,6 +2,10 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AgentsModule } from '../agents/agents.module';
 import {
+  CommissionBreakdown,
+  CommissionBreakdownSchema,
+} from '../commissions/schemas/commission-breakdown.schema';
+import {
   Transaction,
   TransactionSchema,
 } from './schemas/transaction.schema';
@@ -9,14 +13,18 @@ import {
   TransactionStageHistory,
   TransactionStageHistorySchema,
 } from './schemas/transaction-stage-history.schema';
+import { TransactionsController } from './transactions.controller';
+import { TransactionsService } from './transactions.service';
 
 /**
- * Transactions module — Sprint 3 scope: schemas + domain (stage machine).
+ * Transactions module.
  *
- * Services (CRUD, stage advance orchestration, reference-code retry on
- * duplicate-key collision) land in Sprint 5. Exporting MongooseModule lets
- * the commissions module reuse the Transaction model for integrity checks
- * without circular imports.
+ * The service is the write-side aggregate root for transactions, their
+ * stage history, and (on completion) commission breakdowns. We register
+ * the CommissionBreakdown schema directly here — rather than going
+ * through `CommissionsModule` — to avoid a circular module dependency
+ * between transactions and commissions. `CommissionsModule` remains the
+ * read-side owner of breakdowns.
  */
 @Module({
   imports: [
@@ -27,8 +35,11 @@ import {
         name: TransactionStageHistory.name,
         schema: TransactionStageHistorySchema,
       },
+      { name: CommissionBreakdown.name, schema: CommissionBreakdownSchema },
     ]),
   ],
-  exports: [MongooseModule],
+  controllers: [TransactionsController],
+  providers: [TransactionsService],
+  exports: [TransactionsService, MongooseModule],
 })
 export class TransactionsModule {}

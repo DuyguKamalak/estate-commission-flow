@@ -1,25 +1,34 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AgentsModule } from '../agents/agents.module';
-import { TransactionsModule } from '../transactions/transactions.module';
+import { CommissionsController } from './commissions.controller';
+import { CommissionsService } from './commissions.service';
 import {
   CommissionBreakdown,
   CommissionBreakdownSchema,
 } from './schemas/commission-breakdown.schema';
 
 /**
- * Commissions module — Sprint 3 scope: persisted breakdown schema + pure
- * domain calculator. The orchestration service (triggered when a
- * transaction reaches COMPLETED) is wired in Sprint 5.
+ * Commissions module — read side of the commission-breakdown aggregate.
+ *
+ * Notes on module topology:
+ *   - This module does NOT depend on `TransactionsModule`. The only
+ *     cross-aggregate reference (a string `ref: Transaction.name` in the
+ *     schema) is resolved by Mongoose at runtime without needing the
+ *     other module's TypeScript dependency. Keeping these modules
+ *     decoupled avoids a circular import, since `TransactionsModule`
+ *     owns the write path and registers `CommissionBreakdown` in its
+ *     own `MongooseModule.forFeature` list.
+ *   - `MongooseModule` is re-exported so sibling modules can still
+ *     inject the breakdown model via `@InjectModel` if needed.
  */
 @Module({
   imports: [
-    AgentsModule,
-    TransactionsModule,
     MongooseModule.forFeature([
       { name: CommissionBreakdown.name, schema: CommissionBreakdownSchema },
     ]),
   ],
-  exports: [MongooseModule],
+  controllers: [CommissionsController],
+  providers: [CommissionsService],
+  exports: [CommissionsService, MongooseModule],
 })
 export class CommissionsModule {}

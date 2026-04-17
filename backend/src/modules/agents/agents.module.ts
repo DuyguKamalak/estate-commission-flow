@@ -1,18 +1,24 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { AgentsController } from './agents.controller';
+import { AgentsService } from './agents.service';
 import { Agent, AgentSchema } from './schemas/agent.schema';
 
 /**
- * Agents module — Sprint 3 scope: schema registration only.
+ * Agents module — schema + service + controller.
  *
- * Services, controllers and DTOs arrive in Sprint 5 (API layer). Exporting
- * MongooseModule lets sibling modules (transactions, commissions) inject
- * the Agent model via @InjectModel(Agent.name) for cross-aggregate lookups.
+ * Exports `AgentsService` so other modules (e.g. transactions) can assert
+ * that listing / selling agent IDs point to active agents before writing
+ * a new transaction. Also re-exports `MongooseModule` so the Agent model
+ * can be injected from sibling modules when a direct query is cheaper
+ * than going through the service.
  */
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Agent.name, schema: AgentSchema }]),
   ],
-  exports: [MongooseModule],
+  controllers: [AgentsController],
+  providers: [AgentsService],
+  exports: [AgentsService, MongooseModule],
 })
 export class AgentsModule {}
