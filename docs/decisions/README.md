@@ -26,11 +26,9 @@ What becomes easier? What becomes harder? What are the trade-offs?
 
 ## Index
 
-_ADRs will be added as decisions are formalised during implementation._
-
-| #       | Title                                      | Status   |
-|---------|--------------------------------------------|----------|
-| ADR-001 | _(pending) Mongoose over native driver_    | Proposed |
-| ADR-002 | _(pending) Immutable commission snapshots_ | Proposed |
-| ADR-003 | _(pending) Monetary values in minor units_ | Proposed |
-| ADR-004 | _(pending) Reference code format_          | Proposed |
+| #       | Title                                                                                           | Status   |
+|---------|-------------------------------------------------------------------------------------------------|----------|
+| ADR-001 | [Use Mongoose over the native driver](./ADR-001-mongoose-over-native-driver.md)                 | Accepted |
+| ADR-002 | [Immutable, versioned commission snapshots](./ADR-002-immutable-commission-snapshots.md)        | Accepted |
+| ADR-003 | [Monetary values in integer minor units](./ADR-003-monetary-minor-units.md)                     | Accepted |
+| ADR-004 | [Transaction reference code format `TRX-YYYY-XXXXXX`](./ADR-004-reference-code-format.md)       | Accepted |

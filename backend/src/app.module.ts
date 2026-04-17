@@ -4,15 +4,18 @@ import configuration from './config/configuration';
 import { validationSchema } from './config/validation.schema';
 import { CommonModule } from './common/common.module';
 import { HealthController } from './health/health.controller';
+import { DatabaseModule } from './infrastructure/database/database.module';
+import { AgentsModule } from './modules/agents/agents.module';
+import { TransactionsModule } from './modules/transactions/transactions.module';
+import { CommissionsModule } from './modules/commissions/commissions.module';
 
 /**
  * Root application module.
  *
- * Sprint 2 scope — wires configuration, global validation, global error
- * filtering (registered in main.ts) and a health endpoint. Persistence
- * (MongooseModule) is intentionally deferred to Sprint 3, where it will
- * be introduced alongside the first domain schema so the app can still
- * boot locally without a MongoDB connection during scaffolding.
+ * Sprint 3 scope — persistence is now wired up (DatabaseModule) and the
+ * three feature modules (Agents, Transactions, Commissions) are registered
+ * so their schemas are known to Mongoose at boot time. Services and
+ * controllers arrive in Sprint 5.
  */
 @Module({
   imports: [
@@ -26,6 +29,10 @@ import { HealthController } from './health/health.controller';
       },
     }),
     CommonModule,
+    DatabaseModule,
+    AgentsModule,
+    TransactionsModule,
+    CommissionsModule,
   ],
   controllers: [HealthController],
 })
