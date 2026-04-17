@@ -12,6 +12,7 @@ const navItems = [
 
 const mobileNavOpen = ref(false);
 const route = useRoute();
+const commandPalette = ref<{ openPalette: () => void } | null>(null);
 
 watch(
   () => route.fullPath,
@@ -19,6 +20,10 @@ watch(
     mobileNavOpen.value = false;
   },
 );
+
+function openCommandPalette() {
+  commandPalette.value?.openPalette();
+}
 </script>
 
 <template>
@@ -120,9 +125,21 @@ watch(
             </h1>
           </div>
         </div>
-        <div class="hidden sm:flex items-center gap-3">
-          <NuxtLink to="/reports" class="btn-tertiary text-sm">Reports</NuxtLink>
-          <NuxtLink to="/transactions/new" class="btn-primary text-sm">
+        <div class="flex items-center gap-2 sm:gap-3">
+          <button
+            type="button"
+            class="flex items-center gap-2 px-3 py-2 rounded-[var(--radius-md)] bg-[color:var(--color-surface-container)] hover:bg-[color:var(--color-surface-container-high)] text-sm text-[color:var(--color-on-surface-variant)] transition-colors"
+            aria-label="Open search (Cmd or Ctrl + K)"
+            @click="openCommandPalette"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+            <span class="hidden md:inline">Search…</span>
+            <kbd class="hidden md:inline-block text-[10px] font-mono px-1.5 py-0.5 rounded bg-[color:var(--color-surface-container-high)] text-[color:var(--color-on-surface-variant)]">
+              ⌘K
+            </kbd>
+          </button>
+          <NuxtLink to="/reports" class="btn-tertiary text-sm hidden sm:inline-flex">Reports</NuxtLink>
+          <NuxtLink to="/transactions/new" class="btn-primary text-sm hidden sm:inline-flex">
             New transaction
           </NuxtLink>
         </div>
@@ -132,5 +149,7 @@ watch(
         <slot />
       </main>
     </div>
+
+    <CommandPalette ref="commandPalette" />
   </div>
 </template>
