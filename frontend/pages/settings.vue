@@ -45,9 +45,18 @@ const environmentName = process.env.NODE_ENV ?? 'development';
         </div>
         <div>
           <dt class="text-xs uppercase tracking-wide text-[color:var(--color-on-surface-variant)]">
-            Sprint
+            Built by
           </dt>
-          <dd class="mt-1 font-mono text-[color:var(--color-primary)]">Sprint 9 — Production polish</dd>
+          <dd class="mt-1 text-[color:var(--color-primary)]">
+            <a
+              href="https://github.com/DuyguKamalak"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="font-semibold hover:underline"
+            >
+              Duygu Kamalak
+            </a>
+          </dd>
         </div>
       </dl>
     </section>

@@ -72,7 +72,18 @@ watch(
 
       <div class="mt-auto text-xs text-[color:var(--color-on-surface-variant)] leading-relaxed">
         <div class="font-semibold text-[color:var(--color-primary)] mb-1">Iceberg Digital UK</div>
-        v0.1.0 · Sprint 9 — Production polish
+        <div>v0.1.0</div>
+        <div class="mt-2">
+          Built by
+          <a
+            href="https://github.com/DuyguKamalak"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-[color:var(--color-primary)] font-semibold hover:underline"
+          >
+            Duygu Kamalak
+          </a>
+        </div>
       </div>
     </aside>
 
