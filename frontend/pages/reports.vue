@@ -49,7 +49,7 @@ async function loadReport() {
 
 await useAsyncData('reports-bootstrap', async () => {
   await Promise.all([
-    agents.list ? Promise.resolve() : agents.fetchList({ pageSize: 200 }),
+    agents.list ? Promise.resolve() : agents.fetchList({ pageSize: 100 }),
     loadReport(),
   ]);
   return true;

@@ -25,7 +25,7 @@ async function loadAll() {
     transactions.fetchById(id.value).catch(() => null),
     transactions.fetchStageHistory(id.value).catch(() => []),
     transactions.fetchBreakdown(id.value).catch(() => null),
-    agents.list ? Promise.resolve() : agents.fetchList({ pageSize: 200 }),
+    agents.list ? Promise.resolve() : agents.fetchList({ pageSize: 100 }),
   ]);
 }
 

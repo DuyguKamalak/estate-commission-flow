@@ -17,7 +17,7 @@ const { formatMinor } = useCurrency();
  * agent became inactive), we surface the machine-readable error.
  */
 await useAsyncData('agents-for-tx-create', () =>
-  agents.list ? Promise.resolve(true) : agents.fetchList({ pageSize: 200 }).then(() => true),
+  agents.list ? Promise.resolve(true) : agents.fetchList({ pageSize: 100 }).then(() => true),
 );
 
 const activeAgents = computed(() =>

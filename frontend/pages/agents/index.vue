@@ -10,7 +10,7 @@ const toast = useToast();
  * that by keeping the row visible but tagged so operators can still
  * see historical relationships.
  */
-await useAsyncData('agents-list', () => agents.fetchList({ pageSize: 200 }));
+await useAsyncData('agents-list', () => agents.fetchList({ pageSize: 100 }));
 
 const showInactive = ref(false);
 
@@ -78,7 +78,7 @@ async function onSubmit() {
       `${agent.fullName ?? `${agent.firstName} ${agent.lastName}`} is now on the roster.`,
     );
     createOpen.value = false;
-    await agents.fetchList({ pageSize: 200 });
+    await agents.fetchList({ pageSize: 100 });
   } catch (err) {
     const message = (err as Error).message || 'Unexpected error';
     toast.error('Could not add agent', message);
@@ -97,7 +97,7 @@ async function deactivate(id: string, name: string) {
   try {
     await agents.deactivate(id);
     toast.success('Agent deactivated', `${name} is hidden from new deals.`);
-    await agents.fetchList({ pageSize: 200 });
+    await agents.fetchList({ pageSize: 100 });
   } catch (err) {
     toast.error('Could not deactivate', (err as Error).message);
   } finally {
@@ -133,7 +133,7 @@ async function deactivate(id: string, name: string) {
         :empty="!agents.listLoading && visibleAgents.length === 0"
         empty-title="No agents yet"
         empty-description="Add the first agent to start booking transactions."
-        @retry="agents.fetchList({ pageSize: 200 })"
+        @retry="agents.fetchList({ pageSize: 100 })"
       >
         <template #emptyAction>
           <button type="button" class="btn-primary text-sm" @click="openCreateModal">

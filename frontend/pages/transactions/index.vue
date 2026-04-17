@@ -30,7 +30,7 @@ const filters = reactive<ListTransactionsQuery>({
 const initialLoad = useAsyncData('transactions-list', async () => {
   await Promise.all([
     transactions.fetchList({ page: 1, pageSize: 20 }),
-    agents.fetchList({ pageSize: 200 }),
+    agents.fetchList({ pageSize: 100 }),
   ]);
   return true;
 });
