@@ -64,6 +64,12 @@ function onPageChange(page: number) {
   transactions.setPage(page);
 }
 
+function onPageSizeChange(pageSize: number) {
+  filters.pageSize = pageSize;
+  filters.page = 1;
+  transactions.setPageSize(pageSize);
+}
+
 /**
  * Format the ISO `createdAt` as a compact `DD MMM YYYY`. Using
  * `Intl.DateTimeFormat` keeps us in locale territory without pulling
@@ -238,7 +244,9 @@ function formatDate(iso: string): string {
             :page-size="list.pageSize"
             :total="list.total"
             :total-pages="list.totalPages"
+            :page-size-options="[20, 50, 100]"
             @update:page="onPageChange"
+            @update:page-size="onPageSizeChange"
           />
         </div>
       </DataStateBoundary>

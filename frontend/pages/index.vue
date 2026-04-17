@@ -42,9 +42,9 @@ const kpis = computed(() => {
       meta: 'Sum of completed-stage agency shares',
     },
     {
-      label: 'Pending title deeds',
+      label: 'At title deed stage',
       value: s ? String(s.pendingTitleDeedCount) : '—',
-      meta: 'Awaiting completion',
+      meta: 'In conveyancer review — next step is completion',
     },
   ];
 });

@@ -65,6 +65,14 @@ export const useTransactionsStore = defineStore('transactions', {
       return this.fetchList({ ...this.lastQuery, page });
     },
 
+    /**
+     * Changing the page size always snaps back to page 1 so users don't
+     * land on an empty page after widening the window.
+     */
+    setPageSize(pageSize: number) {
+      return this.fetchList({ ...this.lastQuery, pageSize, page: 1 });
+    },
+
     async fetchById(id: string) {
       const client = useApiClient();
       this.detailLoading = true;
