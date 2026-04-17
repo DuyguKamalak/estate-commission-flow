@@ -173,6 +173,60 @@ export interface DashboardSnapshot {
   recentTransactions: RecentTransactionSummary[];
 }
 
+export interface CommissionsReportFilters {
+  from?: string;
+  to?: string;
+  agentId?: string;
+  currency?: string;
+}
+
+export interface CurrencyTotalRow {
+  currency: string;
+  transactionCount: number;
+  totalServiceFee: number;
+  agencyShare: number;
+  agentPool: number;
+}
+
+export interface AgentTotalRow {
+  agentId: string;
+  agentName: string;
+  agentEmail: string | null;
+  currency: string;
+  totalShare: number;
+  transactionCount: number;
+}
+
+export interface ReportTransactionPartyRow {
+  agentId: string;
+  agentName: string;
+  role: CommissionPartyRole;
+  share: number;
+}
+
+export interface ReportTransactionRow {
+  id: string;
+  referenceCode: string;
+  propertyTitle: string;
+  stage: TransactionStage;
+  currency: string;
+  totalServiceFee: number;
+  agencyShare: number;
+  agentPool: number;
+  ruleVersion: string;
+  calculatedAt: string;
+  isSameAgent: boolean;
+  parties: ReportTransactionPartyRow[];
+}
+
+export interface CommissionsReport {
+  range: { from: string | null; to: string | null };
+  filters: { agentId: string | null; currency: string | null };
+  currencyTotals: CurrencyTotalRow[];
+  agentTotals: AgentTotalRow[];
+  transactions: ReportTransactionRow[];
+}
+
 /* ------------------------------------------------------------------ */
 /* Query DTOs (frontend → backend)                                     */
 /* ------------------------------------------------------------------ */

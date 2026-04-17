@@ -45,7 +45,7 @@ const navItems = [
 
       <div class="mt-auto text-xs text-[color:var(--color-on-surface-variant)] leading-relaxed">
         <div class="font-semibold text-[color:var(--color-primary)] mb-1">Iceberg Digital UK</div>
-        v0.1.0 · Sprint 5
+        v0.1.0 · Sprint 7
       </div>
     </aside>
 

@@ -1,6 +1,8 @@
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
+import { Types } from 'mongoose';
 import { TransactionStage } from '../../common/enums/transaction-stage.enum';
+import { Agent } from '../agents/schemas/agent.schema';
 import { CommissionBreakdown } from '../commissions/schemas/commission-breakdown.schema';
 import { Transaction } from '../transactions/schemas/transaction.schema';
 import { ReportsService } from './reports.service';
@@ -25,6 +27,11 @@ describe('ReportsService', () => {
 
   const breakdownModel = {
     aggregate: jest.fn(),
+    find: jest.fn(),
+  };
+
+  const agentModel = {
+    find: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -40,6 +47,10 @@ describe('ReportsService', () => {
         {
           provide: getModelToken(CommissionBreakdown.name),
           useValue: breakdownModel,
+        },
+        {
+          provide: getModelToken(Agent.name),
+          useValue: agentModel,
         },
       ],
     }).compile();
@@ -133,5 +144,187 @@ describe('ReportsService', () => {
         currency: 'GBP',
       }),
     );
+  });
+
+  describe('getCommissionsReport', () => {
+    it('returns a shaped-but-empty payload when there are no breakdowns', async () => {
+      breakdownModel.aggregate
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue([]) })
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue([]) });
+      breakdownModel.find.mockReturnValueOnce({
+        sort: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue([]),
+      });
+
+      const report = await service.getCommissionsReport({
+        from: new Date('2026-04-01T00:00:00Z'),
+        to: new Date('2026-04-30T23:59:59Z'),
+        currency: 'GBP',
+      });
+
+      expect(report.range).toEqual({
+        from: '2026-04-01T00:00:00.000Z',
+        to: '2026-04-30T23:59:59.000Z',
+      });
+      expect(report.filters).toEqual({ agentId: null, currency: 'GBP' });
+      expect(report.currencyTotals).toEqual([]);
+      expect(report.agentTotals).toEqual([]);
+      expect(report.transactions).toEqual([]);
+    });
+
+    it('returns empty report when agentId is not a valid ObjectId without hitting DB', async () => {
+      const report = await service.getCommissionsReport({
+        agentId: 'not-an-id',
+      });
+
+      expect(report.filters).toEqual({ agentId: 'not-an-id', currency: null });
+      expect(report.currencyTotals).toEqual([]);
+      expect(report.agentTotals).toEqual([]);
+      expect(report.transactions).toEqual([]);
+      expect(breakdownModel.aggregate).not.toHaveBeenCalled();
+      expect(breakdownModel.find).not.toHaveBeenCalled();
+    });
+
+    it('hydrates agent names on the leaderboard and ledger rows', async () => {
+      const agentOneId = new Types.ObjectId();
+      const agentTwoId = new Types.ObjectId();
+      const txId = new Types.ObjectId();
+
+      breakdownModel.aggregate
+        .mockReturnValueOnce({
+          exec: jest.fn().mockResolvedValue([
+            {
+              _id: 'GBP',
+              transactionCount: 1,
+              totalServiceFee: 100_000,
+              agencyShare: 50_000,
+              agentPool: 50_000,
+            },
+          ]),
+        })
+        .mockReturnValueOnce({
+          exec: jest.fn().mockResolvedValue([
+            {
+              _id: { agentId: agentOneId, currency: 'GBP' },
+              totalShare: 25_000,
+              transactionCount: 1,
+            },
+            {
+              _id: { agentId: agentTwoId, currency: 'GBP' },
+              totalShare: 25_000,
+              transactionCount: 1,
+            },
+          ]),
+        });
+      breakdownModel.find.mockReturnValueOnce({
+        sort: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue([
+          {
+            transactionId: txId,
+            currency: 'GBP',
+            totalServiceFee: 100_000,
+            agencyShare: 50_000,
+            agentPool: 50_000,
+            isSameAgent: false,
+            ruleVersion: 'v1',
+            calculatedAt: new Date('2026-04-12T09:00:00Z'),
+            parties: [
+              { agentId: agentOneId, role: 'listing', share: 25_000 },
+              { agentId: agentTwoId, role: 'selling', share: 25_000 },
+            ],
+          },
+        ]),
+      });
+
+      /*
+       * The leaderboard fetches agents once, and the ledger fetches
+       * transactions + agents in parallel. Our mock resolves all
+       * `agentModel.find` calls with the same roster so name hydration
+       * works for both code paths.
+       */
+      agentModel.find
+        .mockReturnValueOnce({
+          lean: jest.fn().mockReturnThis(),
+          exec: jest.fn().mockResolvedValue([
+            { _id: agentOneId, firstName: 'Jane', lastName: 'Doe', email: 'jane@x' },
+            { _id: agentTwoId, firstName: 'John', lastName: 'Roe', email: 'john@x' },
+          ]),
+        })
+        .mockReturnValueOnce({
+          lean: jest.fn().mockReturnThis(),
+          exec: jest.fn().mockResolvedValue([
+            { _id: agentOneId, firstName: 'Jane', lastName: 'Doe', email: 'jane@x' },
+            { _id: agentTwoId, firstName: 'John', lastName: 'Roe', email: 'john@x' },
+          ]),
+        });
+      transactionModel.find.mockReturnValueOnce({
+        lean: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue([
+          {
+            _id: txId,
+            referenceCode: 'TRX-2026-TEST01',
+            propertyTitle: 'Test flat',
+            stage: TransactionStage.COMPLETED,
+          },
+        ]),
+      });
+
+      const report = await service.getCommissionsReport({});
+
+      expect(report.currencyTotals).toEqual([
+        {
+          currency: 'GBP',
+          transactionCount: 1,
+          totalServiceFee: 100_000,
+          agencyShare: 50_000,
+          agentPool: 50_000,
+        },
+      ]);
+      expect(report.agentTotals).toEqual([
+        {
+          agentId: String(agentOneId),
+          agentName: 'Jane Doe',
+          agentEmail: 'jane@x',
+          currency: 'GBP',
+          totalShare: 25_000,
+          transactionCount: 1,
+        },
+        {
+          agentId: String(agentTwoId),
+          agentName: 'John Roe',
+          agentEmail: 'john@x',
+          currency: 'GBP',
+          totalShare: 25_000,
+          transactionCount: 1,
+        },
+      ]);
+      expect(report.transactions).toHaveLength(1);
+      expect(report.transactions[0]).toEqual(
+        expect.objectContaining({
+          referenceCode: 'TRX-2026-TEST01',
+          propertyTitle: 'Test flat',
+          currency: 'GBP',
+          totalServiceFee: 100_000,
+          ruleVersion: 'v1',
+          isSameAgent: false,
+        }),
+      );
+      expect(report.transactions[0].parties).toEqual([
+        expect.objectContaining({
+          agentName: 'Jane Doe',
+          role: 'listing',
+          share: 25_000,
+        }),
+        expect.objectContaining({
+          agentName: 'John Roe',
+          role: 'selling',
+          share: 25_000,
+        }),
+      ]);
+    });
   });
 });
