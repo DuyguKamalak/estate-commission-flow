@@ -6,4 +6,5 @@
   <NuxtLayout>
     <NuxtPage />
   </NuxtLayout>
+  <ToastStack />
 </template>
