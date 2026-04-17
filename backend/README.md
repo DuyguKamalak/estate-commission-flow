@@ -14,10 +14,17 @@ npm run test:cov      # jest with coverage
 npm run lint          # eslint --fix
 npm run format        # prettier
 npm run seed          # populate MongoDB with demo agents + transactions
+npm run cleanup:test-data  # remove stray HTML-tagged test rows (idempotent)
 ```
 
 `SEED_RESET=true npm run seed` wipes the demo collections (agents,
 transactions, stage history, commission breakdowns) before re-seeding.
+
+`npm run cleanup:test-data` is a one-shot maintenance script: it finds
+any transaction whose title or address contains HTML-like tags (left
+over from pen-testing or manual API pokes) and removes it plus its
+breakdown and stage-history rows. Safe to re-run — does nothing when
+no suspicious rows exist.
 
 ## Environment
 
