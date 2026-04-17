@@ -45,7 +45,7 @@ const navItems = [
 
       <div class="mt-auto text-xs text-[color:var(--color-on-surface-variant)] leading-relaxed">
         <div class="font-semibold text-[color:var(--color-primary)] mb-1">Iceberg Digital UK</div>
-        v0.1.0 · Sprint 2
+        v0.1.0 · Sprint 5
       </div>
     </aside>
 
@@ -63,8 +63,10 @@ const navItems = [
           </h1>
         </div>
         <div class="hidden sm:flex items-center gap-3">
-          <button class="btn-tertiary text-sm">Help</button>
-          <button class="btn-primary text-sm">New transaction</button>
+          <NuxtLink to="/reports" class="btn-tertiary text-sm">Reports</NuxtLink>
+          <NuxtLink to="/transactions/new" class="btn-primary text-sm">
+            New transaction
+          </NuxtLink>
         </div>
       </header>
 

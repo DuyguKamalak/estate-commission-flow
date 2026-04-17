@@ -8,6 +8,7 @@ import { DatabaseModule } from './infrastructure/database/database.module';
 import { AgentsModule } from './modules/agents/agents.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { CommissionsModule } from './modules/commissions/commissions.module';
+import { ReportsModule } from './modules/reports/reports.module';
 
 /**
  * Root application module.
@@ -33,6 +34,7 @@ import { CommissionsModule } from './modules/commissions/commissions.module';
     AgentsModule,
     TransactionsModule,
     CommissionsModule,
+    ReportsModule,
   ],
   controllers: [HealthController],
 })
