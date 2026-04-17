@@ -73,5 +73,32 @@ export const useAgentsStore = defineStore('agents', {
       if (this.byId[id]) this.byId[id] = { ...this.byId[id], isActive: false };
       this.list = null;
     },
+
+    /**
+     * Patch an agent's editable fields. Mirrors the backend DTO —
+     * callers may send any subset of {firstName, lastName, email,
+     * phone, isActive}. Invalidates the cached list so the caller can
+     * re-fetch and see the fresh row.
+     */
+    async update(
+      id: string,
+      payload: Partial<{
+        firstName: string;
+        lastName: string;
+        email: string;
+        phone: string;
+        isActive: boolean;
+      }>,
+    ) {
+      const client = useApiClient();
+      const agent = await client.patch<Agent>(`/agents/${id}`, payload);
+      this.byId[id] = agent;
+      this.list = null;
+      return agent;
+    },
+
+    async reactivate(id: string) {
+      return this.update(id, { isActive: true });
+    },
   },
 });

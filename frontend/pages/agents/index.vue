@@ -1,14 +1,17 @@
 <script setup lang="ts">
+import type { Agent } from '~/types/api';
+
 useHead({ title: 'Agents · Estate Commission Flow' });
 
 const agents = useAgentsStore();
 const toast = useToast();
 
 /*
- * Agent directory with inline create flow via a modal. Deactivation
- * is a soft-delete on the backend (flips `isActive` false); we mirror
- * that by keeping the row visible but tagged so operators can still
- * see historical relationships.
+ * Agent directory with inline create and edit flows. Deactivation is a
+ * soft-delete on the backend (flips `isActive` false); we mirror that
+ * by keeping the row visible (when "Show inactive" is on) but tagged
+ * so operators can still see historical relationships and reactivate
+ * them with one click.
  */
 await useAsyncData('agents-list', () => agents.fetchList({ pageSize: 100 }));
 
@@ -19,19 +22,27 @@ const visibleAgents = computed(() => {
   return showInactive.value ? rows : rows.filter((a) => a.isActive);
 });
 
-/* ---------------- Create modal state ---------------- */
+/* ---------------- Shared form state (create + edit) ---------------- */
 
-const createOpen = ref(false);
-const form = reactive({
+type AgentForm = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+};
+
+const form = reactive<AgentForm>({
   firstName: '',
   lastName: '',
   email: '',
   phone: '',
 });
-const errors = reactive<Record<string, string | null>>({
+const errors = reactive<Record<keyof AgentForm | 'generic', string | null>>({
   firstName: null,
   lastName: null,
   email: null,
+  phone: null,
+  generic: null,
 });
 const submitting = ref(false);
 
@@ -43,11 +54,20 @@ function resetForm() {
   errors.firstName = null;
   errors.lastName = null;
   errors.email = null;
+  errors.phone = null;
+  errors.generic = null;
 }
 
-function openCreateModal() {
-  resetForm();
-  createOpen.value = true;
+function hydrateForm(agent: Agent) {
+  form.firstName = agent.firstName;
+  form.lastName = agent.lastName;
+  form.email = agent.email;
+  form.phone = agent.phone ?? '';
+  errors.firstName = null;
+  errors.lastName = null;
+  errors.email = null;
+  errors.phone = null;
+  errors.generic = null;
 }
 
 function validate(): boolean {
@@ -60,10 +80,19 @@ function validate(): boolean {
   errors.email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())
     ? null
     : 'Enter a valid email address.';
-  return Object.values(errors).every((e) => !e);
+  return !errors.firstName && !errors.lastName && !errors.email;
 }
 
-async function onSubmit() {
+/* ---------------- Create modal ---------------- */
+
+const createOpen = ref(false);
+
+function openCreateModal() {
+  resetForm();
+  createOpen.value = true;
+}
+
+async function onCreate() {
   if (!validate()) return;
   submitting.value = true;
   try {
@@ -87,13 +116,50 @@ async function onSubmit() {
   }
 }
 
-/* ---------------- Deactivate ---------------- */
+/* ---------------- Edit modal ---------------- */
 
-const deactivating = ref<string | null>(null);
+const editOpen = ref(false);
+const editingId = ref<string | null>(null);
+
+function openEditModal(agent: Agent) {
+  hydrateForm(agent);
+  editingId.value = agent.id;
+  editOpen.value = true;
+}
+
+async function onEdit() {
+  if (!validate() || !editingId.value) return;
+  submitting.value = true;
+  try {
+    const agent = await agents.update(editingId.value, {
+      firstName: form.firstName.trim(),
+      lastName: form.lastName.trim(),
+      email: form.email.trim().toLowerCase(),
+      // Empty string means "clear phone"; backend accepts missing,
+      // so we only send it when user actually kept or changed a value.
+      phone: form.phone.trim() || undefined,
+    });
+    toast.success(
+      'Agent updated',
+      `${agent.fullName ?? `${agent.firstName} ${agent.lastName}`} has been saved.`,
+    );
+    editOpen.value = false;
+    editingId.value = null;
+    await agents.fetchList({ pageSize: 100 });
+  } catch (err) {
+    toast.error('Could not update agent', (err as Error).message);
+  } finally {
+    submitting.value = false;
+  }
+}
+
+/* ---------------- Deactivate / Reactivate ---------------- */
+
+const togglingId = ref<string | null>(null);
 
 async function deactivate(id: string, name: string) {
   if (!confirm(`Deactivate ${name}? They'll no longer appear in agent pickers.`)) return;
-  deactivating.value = id;
+  togglingId.value = id;
   try {
     await agents.deactivate(id);
     toast.success('Agent deactivated', `${name} is hidden from new deals.`);
@@ -101,7 +167,20 @@ async function deactivate(id: string, name: string) {
   } catch (err) {
     toast.error('Could not deactivate', (err as Error).message);
   } finally {
-    deactivating.value = null;
+    togglingId.value = null;
+  }
+}
+
+async function reactivate(id: string, name: string) {
+  togglingId.value = id;
+  try {
+    await agents.reactivate(id);
+    toast.success('Agent reactivated', `${name} can be booked to deals again.`);
+    await agents.fetchList({ pageSize: 100 });
+  } catch (err) {
+    toast.error('Could not reactivate', (err as Error).message);
+  } finally {
+    togglingId.value = null;
   }
 }
 </script>
@@ -178,13 +257,29 @@ async function deactivate(id: string, name: string) {
                 {{ agent.isActive ? 'Active' : 'Inactive' }}
               </span>
               <button
+                type="button"
+                class="btn-tertiary text-xs"
+                @click="openEditModal(agent)"
+              >
+                Edit
+              </button>
+              <button
                 v-if="agent.isActive"
                 type="button"
                 class="btn-tertiary text-xs"
-                :disabled="deactivating === agent.id"
+                :disabled="togglingId === agent.id"
                 @click="deactivate(agent.id, agent.fullName ?? `${agent.firstName} ${agent.lastName}`)"
               >
-                {{ deactivating === agent.id ? 'Deactivating…' : 'Deactivate' }}
+                {{ togglingId === agent.id ? 'Deactivating…' : 'Deactivate' }}
+              </button>
+              <button
+                v-else
+                type="button"
+                class="btn-tertiary text-xs"
+                :disabled="togglingId === agent.id"
+                @click="reactivate(agent.id, agent.fullName ?? `${agent.firstName} ${agent.lastName}`)"
+              >
+                {{ togglingId === agent.id ? 'Reactivating…' : 'Reactivate' }}
               </button>
             </div>
           </div>
@@ -199,7 +294,7 @@ async function deactivate(id: string, name: string) {
       description="The email must be unique across the agency. Phone is optional."
       @close="createOpen = false"
     >
-      <form class="flex flex-col gap-4" @submit.prevent="onSubmit">
+      <form class="flex flex-col gap-4" @submit.prevent="onCreate">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             label="First name"
@@ -273,6 +368,92 @@ async function deactivate(id: string, name: string) {
           </button>
           <button type="submit" class="btn-primary text-sm" :disabled="submitting">
             {{ submitting ? 'Saving…' : 'Add agent' }}
+          </button>
+        </div>
+      </form>
+    </ModalShell>
+
+    <!-- Edit modal -->
+    <ModalShell
+      :open="editOpen"
+      title="Edit agent"
+      description="Update the agent's contact details. Email must remain unique across the agency."
+      @close="editOpen = false"
+    >
+      <form class="flex flex-col gap-4" @submit.prevent="onEdit">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            label="First name"
+            for="edit-first-name"
+            required
+            :error="errors.firstName"
+          >
+            <input
+              id="edit-first-name"
+              v-model="form.firstName"
+              type="text"
+              class="field-input"
+              maxlength="80"
+            >
+          </FormField>
+
+          <FormField
+            label="Last name"
+            for="edit-last-name"
+            required
+            :error="errors.lastName"
+          >
+            <input
+              id="edit-last-name"
+              v-model="form.lastName"
+              type="text"
+              class="field-input"
+              maxlength="80"
+            >
+          </FormField>
+        </div>
+
+        <FormField
+          label="Email"
+          for="edit-email"
+          required
+          :error="errors.email"
+        >
+          <input
+            id="edit-email"
+            v-model="form.email"
+            type="email"
+            class="field-input"
+            maxlength="200"
+            autocomplete="email"
+          >
+        </FormField>
+
+        <FormField
+          label="Phone"
+          for="edit-phone"
+          helper="Optional. Leave blank to clear."
+        >
+          <input
+            id="edit-phone"
+            v-model="form.phone"
+            type="tel"
+            class="field-input font-mono"
+            maxlength="40"
+          >
+        </FormField>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button
+            type="button"
+            class="btn-tertiary text-sm"
+            :disabled="submitting"
+            @click="editOpen = false"
+          >
+            Cancel
+          </button>
+          <button type="submit" class="btn-primary text-sm" :disabled="submitting">
+            {{ submitting ? 'Saving…' : 'Save changes' }}
           </button>
         </div>
       </form>
