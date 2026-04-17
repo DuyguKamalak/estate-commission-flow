@@ -210,6 +210,15 @@ health check: it returns 503 when MongoDB is unreachable, so traffic is
 removed from a degraded instance without restarting the process.
 
 ---
+## 🌐 Live Demo
+
+The application is deployed and publicly accessible:
+
+- **Frontend:** https://estate-commission-flow.vercel.app/
+- **API Base:** https://estate-commission-flow.onrender.com/api
+- **Swagger / OpenAPI Docs:** https://estate-commission-flow.onrender.com/api/docs
+
+> Note: The backend is hosted on Render's free tier, so the first request may take a few seconds if the service is waking up.
 
 ## Documentation
 
